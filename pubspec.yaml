@@ -1,0 +1,29 @@
+name: pan_video_player
+description: 网盘视频播放器 - 百度网盘原画播放/手势缩放/多档倍速/断点续播
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # ── 播放内核：基于 mpv，支持任意倍速、硬解、HTTP流式播放 ──
+  media_kit: ^1.1.11
+  media_kit_video: ^1.2.5
+  media_kit_libs_video: ^1.0.4
+  # ── 网络 ──
+  dio: ^5.4.0
+  # ── 本地存储：播放进度/账号数据 ──
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  shared_preferences: ^2.2.0
+  # ── 内嵌网页做百度OAuth授权 ──
+  flutter_inappwebview: ^6.1.0
+
+dev_dependencies:
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
