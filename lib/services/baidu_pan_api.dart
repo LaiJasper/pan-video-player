@@ -42,34 +42,62 @@ class BaiduPanApi {
   }
 
   /// 获取登录用户信息（昵称、头像、uid）
+  /// 三级容错：通行证接口（需basic权限）→ 网盘uinfo接口（netdisk权限必有）
+  /// → 兜底账号。拿不到昵称头像绝不阻塞登录（不影响文件浏览/播放）。
   static Future<PanAccount?> fetchUserInfo(String accessToken) async {
+    // 接口1：百度通行证用户信息（需要 basic 权限，部分应用未勾选会失败）
     try {
       final r = await _dio.get(
         'https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser',
         queryParameters: {'access_token': accessToken},
       );
-      final d = r.data as Map<String, dynamic>;
-      if (d['uid'] == null) return null;
-      return PanAccount(
-        id: d['uid'].toString(),
-        name: (d['username'] ?? d['showname'] ?? '百度账号').toString(),
-        avatarUrl: d['portrait'] != null
-            ? 'https://himg.bdimg.com/sys/portraitn/item/${d['portrait']}'
-            : '',
-        accessToken: accessToken,
-        expiresIn: 2592000,
-        loginTime: DateTime.now(),
+      final d = r.data is Map ? Map<String, dynamic>.from(r.data) : null;
+      if (d != null && d['uid'] != null) {
+        return PanAccount(
+          id: d['uid'].toString(),
+          name: (d['username'] ?? d['showname'] ?? '百度账号').toString(),
+          avatarUrl: d['portrait'] != null
+              ? 'https://himg.bdimg.com/sys/portraitn/item/${d['portrait']}'
+              : '',
+          accessToken: accessToken,
+          expiresIn: 2592000,
+          loginTime: DateTime.now(),
+        );
+      }
+    } catch (_) {}
+
+    // 接口2：网盘 uinfo（netdisk 权限内必可用）
+    try {
+      final r = await _dio.get(
+        'https://pan.baidu.com/rest/2.0/xpan/nas',
+        queryParameters: {
+          'method': 'uinfo',
+          'access_token': accessToken,
+        },
       );
-    } catch (_) {
-      // 拿不到用户信息也不阻塞登录，用兜底账号
-      return PanAccount(
-        id: 'bd_${DateTime.now().millisecondsSinceEpoch}',
-        name: '百度账号',
-        accessToken: accessToken,
-        expiresIn: 2592000,
-        loginTime: DateTime.now(),
-      );
-    }
+      final d = r.data is Map ? Map<String, dynamic>.from(r.data) : null;
+      final name = d?['netdisk_name'] ?? d?['baidu_name'];
+      if (d != null && name != null) {
+        return PanAccount(
+          // 用昵称做稳定ID：同一账号重复登录不会产生重复账号卡片
+          id: 'bd_${name.hashCode}',
+          name: name.toString(),
+          avatarUrl: (d['avatar_url'] ?? '').toString(),
+          accessToken: accessToken,
+          expiresIn: 2592000,
+          loginTime: DateTime.now(),
+        );
+      }
+    } catch (_) {}
+
+    // 兜底：允许登录（昵称显示为"百度账号"，功能完全不受影响）
+    return PanAccount(
+      id: 'bd_${accessToken.hashCode}',
+      name: '百度账号',
+      accessToken: accessToken,
+      expiresIn: 2592000,
+      loginTime: DateTime.now(),
+    );
   }
 
   /// 获取目录下的文件列表（文件浏览页核心接口）
