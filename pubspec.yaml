@@ -27,11 +27,12 @@ dev_dependencies:
 
 # 版本锁定：media_kit_video 的传递依赖会被 pub 解析成 2026 最新版，
 # 需要更新的构建插件，与本项目锁定的 Flutter 3.24.5 不兼容。
-# 三层全部强制使用 2024年 同代版本，API 完全一致，仅构建脚本更旧。
+# 全部强制使用 2024年 同代版本，API 完全一致，仅构建脚本更旧。
 dependency_overrides:
   package_info_plus: 8.1.2
   screen_brightness: 2.0.1
   screen_brightness_android: 2.0.0
+  wakelock_plus: 1.2.10
 
 flutter:
   uses-material-design: true
