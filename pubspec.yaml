@@ -9,21 +9,28 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # ── 播放内核：基于 mpv，支持任意倍速、硬解、HTTP流式播放 ──
+  # 播放内核：基于 mpv，支持任意倍速、硬解、HTTP流式播放
   media_kit: ^1.1.11
   media_kit_video: ^1.2.5
   media_kit_libs_video: ^1.0.4
-  # ── 网络 ──
+  # 网络
   dio: ^5.4.0
-  # ── 本地存储：播放进度/账号数据 ──
+  # 本地存储：播放进度/账号数据
   sqflite: ^2.3.0
   path: ^1.8.3
   shared_preferences: ^2.2.0
-  # ── 内嵌网页做百度OAuth授权 ──
+  # 内嵌网页做百度OAuth授权
   flutter_inappwebview: ^6.1.0
 
 dev_dependencies:
   flutter_lints: ^3.0.0
+
+# 版本锁定：wakelock_plus（media_kit_video 的传递依赖）会拉取
+# package_info_plus 最新版（要求 Flutter 3.38+ 的构建插件），
+# 与本项目锁定的 Flutter 3.24.5 不兼容。强制使用同时代 8.1.2，
+# API 与最新版完全一致，仅构建脚本更旧。
+dependency_overrides:
+  package_info_plus: 8.1.2
 
 flutter:
   uses-material-design: true
