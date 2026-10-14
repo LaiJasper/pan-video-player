@@ -9,10 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # 播放内核：基于 mpv，支持任意倍速、硬解、HTTP流式播放
-  media_kit: ^1.1.11
-  media_kit_video: ^1.2.5
-  media_kit_libs_video: ^1.0.4
+  # 播放内核：基于 mpv（锁定2024年版本，与Flutter 3.24.5同代）
+  media_kit: 1.1.11
+  media_kit_video: 1.2.5
+  media_kit_libs_video: 1.0.4
   # 网络
   dio: ^5.4.0
   # 本地存储：播放进度/账号数据
