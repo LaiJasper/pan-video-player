@@ -3,6 +3,10 @@ name: Build APK
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,12 +36,37 @@ jobs:
 
       - run: flutter pub get
 
+      - name: 静态检查 Dart 代码
+        continue-on-error: true
+        run: flutter analyze 2>&1 | tee analyze.log
+
       - name: 编译 APK
         run: |
-          flutter build apk --release \
-            --dart-define=BAIDU_APP_KEY="${{ secrets.BAIDU_APP_KEY }}"
+          set -o pipefail
+          flutter build apk --release --verbose 2>&1 | tee build.log
 
-      - uses: actions/upload-artifact@v4
+      - name: 上传 APK
+        uses: actions/upload-artifact@v4
         with:
           name: pan-video-player-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: 失败时自动创建诊断报告
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## 自动诊断报告（构建失败原因摘录）"
+            echo ""
+            echo "### flutter analyze 输出"
+            echo '```'
+            tail -n 60 analyze.log 2>/dev/null || echo "(无)"
+            echo '```'
+            echo ""
+            echo "### 编译日志最后100行"
+            echo '```'
+            tail -n 100 build.log 2>/dev/null || echo "(无)"
+            echo '```'
+          } > issue_body.md
+          gh issue create --title "APK构建失败·自动诊断" --body-file issue_body.md
