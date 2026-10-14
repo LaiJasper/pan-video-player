@@ -18,15 +18,20 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # 锁定 3.24.5：老插件与最新版 Flutter 的 Gradle 9 不兼容
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.24.5'
 
       - name: 生成 Android 平台骨架
         run: |
           if [ ! -d android ]; then
             flutter create . --org com.example --project-name pan_video_player
           fi
+
+      - name: 清理模板测试文件
+        run: rm -rf test
 
       - name: 配置网络权限
         run: |
