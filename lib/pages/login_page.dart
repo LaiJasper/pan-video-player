@@ -5,7 +5,6 @@
 // ============================================================
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import '../config/app_config.dart';
 import '../services/auth_service.dart';
 import '../services/baidu_pan_api.dart';
 
@@ -70,8 +69,8 @@ class _LoginPageState extends State<LoginPage> {
           URLRequest(url: WebUri(BaiduPanApi.buildOAuthUrl())),
       // 页面加载完成后检查 URL 是否已携带 token
       onLoadStop: (controller, _) async => _checkToken(controller),
-      // 部分场景跳转不触发 onLoadStop，这里兜底监听访问记录
-      onUpdateVisitedHistory: (controller, _) async =>
+      // 兜底监听访问记录（注意：该回调有3个参数，第3个是"是否重新加载"）
+      onUpdateVisitedHistory: (controller, _, __) async =>
           _checkToken(controller),
     );
   }
@@ -79,8 +78,9 @@ class _LoginPageState extends State<LoginPage> {
   /// 从当前页面 URL（含 # 后的 fragment）提取 access_token
   Future<void> _checkToken(InAppWebViewController controller) async {
     // location.href 完整包含 #access_token=xxx 部分
+    // 注意：本插件版本的参数名是 source
     final href = await controller.evaluateJavascript(
-        content: 'window.location.href');
+        source: 'window.location.href');
     if (href is! String) return;
     final parsed = BaiduPanApi.parseTokenFromUrl(href);
     if (parsed == null) return;
