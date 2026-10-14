@@ -62,16 +62,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           {
-            echo "## 自动诊断报告（构建失败原因摘录）"
+            echo "## 自动诊断报告 v2"
             echo ""
-            echo "### flutter analyze 输出"
+            echo "### 关键错误行（自动摘录）"
             echo '```'
-            tail -n 60 analyze.log 2>/dev/null || echo "(无)"
+            grep -n -E "FAILURE|What went wrong|Caused by|error:|Error:|Exception|FAILED|A problem occurred|Could not" build.log | head -n 80 || echo "(无匹配)"
             echo '```'
             echo ""
-            echo "### 编译日志最后100行"
+            echo "### 编译日志最后250行"
             echo '```'
-            tail -n 100 build.log 2>/dev/null || echo "(无)"
+            tail -n 250 build.log 2>/dev/null || echo "(无)"
             echo '```'
           } > issue_body.md
-          gh issue create --title "APK构建失败·自动诊断" --body-file issue_body.md
+          gh issue create --title "APK构建失败·自动诊断v2" --body-file issue_body.md
